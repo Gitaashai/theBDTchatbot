@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Support Chatbot</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Body Styling with Background Gradient */
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(to bottom, #8aa1d2, #1f4b99);
+            color: #333;
+        }
+
+        /* Container for Login and Registration */
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+            width: 350px;
+            max-width: 90%;
+            padding: 30px;
+            text-align: center;
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* Title and Input Styles */
+        h1 {
+            font-size: 2.4em;
+            color: #ffffff;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: #1f4b99;
+            margin-bottom: 20px;
+        }
+        
+        input {
+            padding: 12px;
+            width: 90%;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 1em;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input:focus {
+            border: 1px solid #1f4b99;
+        }
+
+        /* Button Styling */
+        button {
+            background-color: #1f4b99;
+            color: #fff;
+            padding: 12px 25px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        button:hover {
+            background-color: #173a75;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Chat Container Styling */
+        .chat-container {
+            width: 400px;
+            max-width: 90%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: none;
+        }
+
+        .chat-header {
+            background-color: #1f4b99;
+            padding: 15px;
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #fff;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .new-chat-button {
+            background-color: #1f4b99;
+            color: #fff;
+            border: none;
+            font-size: 0.9em;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .new-chat-button:hover {
+            background-color: #173a75;
+        }
+
+        /* Chatbot Iframe */
+        iframe {
+            border: none;
+            width: 100%;
+            height: 450px;
+        }
+
+        /* Error Message */
+        #error-message, #otp-message, #reg-message {
+            color: red;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Message for Login/Register Screens Only -->
+    <h1 id="welcomeMessage">Welcome to the Mental Health Chatbot</h1>
+
+    <!-- Registration Form -->
+    <div class="container active" id="registrationContainer">
+        <h2>Create an Account</h2>
+        <input type="text" id="regUsername" placeholder="Username" required>
+        <input type="password" id="regPassword" placeholder="Password" required>
+        <input type="text" id="regMobile" placeholder="Mobile Number" required>
+        <button onclick="register()">Register</button>
+        <p id="reg-message"></p>
+        <p>Already have an account? <button onclick="showLogin()">Login</button></p>
+    </div>
+
+    <!-- Login Form -->
+    <div class="container" id="loginContainer">
+        <h2>Login to Access Chatbot</h2>
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="login()">Login</button>
+        <p id="error-message"></p>
+    </div>
+
+    <!-- OTP Verification Form -->
+    <div class="container" id="otpContainer">
+        <h2>Enter OTP</h2>
+        <input type="text" id="otpInput" placeholder="Enter OTP" required>
+        <button onclick="verifyOtp()">Verify OTP</button>
+        <p id="otp-message"></p>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            Mental Health For You
+            <button class="new-chat-button" onclick="newChat()">New Chat</button>
+        </div>
+        
+        <!-- Chatbot iframe with microphone enabled -->
+        <iframe id="chatIframe" allow="microphone;" src="https://console.dialogflow.com/api-client/demo/embedded/1df8ef38-ece4-443d-ba3e-05a85fb80cf0"></iframe>
+    </div>
+
+    <script>
+        const users = {};
+        let generatedOtp = "";
+
+        function register() {
+            const username = document.getElementById("regUsername").value;
+            const password = document.getElementById("regPassword").value;
+            const mobile = document.getElementById("regMobile").value;
+            const regMessage = document.getElementById("reg-message");
+
+            if (username && password && mobile) {
+                users[username] = { password, mobile };
+                regMessage.textContent = "Registration successful! Please login.";
+                showLogin();
+            } else {
+                regMessage.textContent = "Please enter a valid username, password, and mobile number.";
+            }
+        }
+
+        function showLogin() {
+            document.getElementById("registrationContainer").style.display = "none";
+            document.getElementById("loginContainer").style.display = "block";
+        }
+
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const errorMessage = document.getElementById("error-message");
+
+            if (users[username] && users[username].password === password) {
+                generateOtp(users[username].mobile);
+                document.getElementById("loginContainer").style.display = "none";
+                document.getElementById("otpContainer").style.display = "block";
+            } else {
+                errorMessage.textContent = "Incorrect username or password.";
+            }
+        }
+
+        function generateOtp(mobile) {
+            generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+            alert(`OTP sent to ${mobile}: ${generatedOtp}`);
+        }
+
+        function verifyOtp() {
+            const otpInput = document.getElementById("otpInput").value;
+            const otpMessage = document.getElementById("otp-message");
+
+            if (otpInput === generatedOtp) {
+                document.getElementById("otpContainer").style.display = "none";
+                document.getElementById("chatContainer").style.display = "block";
+                document.getElementById("welcomeMessage").style.display = "none";
+            } else {
+                otpMessage.textContent = "Incorrect OTP. Please try again.";
+            }
+        }
+
+        function newChat() {
+            document.getElementById("chatIframe").src += '';
+        }
+    </script>
+</body>
+</html>
